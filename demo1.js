@@ -6,24 +6,24 @@ var fondo
 var bala,
   balaD = false,
   nave
-//
+
 var bala2,
   balaD2 = false,
   nave2
 var bala3,
   balaD3 = false,
   nave3
-//
+
 var salto
-//
+
 var moverDerecha
 var moverAtras
-//
+
 var menu
 
 var velocidadBala
 var despBala
-//
+
 var velocidadBala2
 var despBala2
 
@@ -31,7 +31,7 @@ var velocidadBala3x
 var velocidadBala3y
 var despBala3x
 var despBala3y
-//
+
 var estatusAire
 var estatuSuelo
 
@@ -41,7 +41,7 @@ var nnNetwork,
   datosEntrenamiento = []
 var modoAuto = false,
   eCompleto = false
-//
+
 var despDerTiempo
 var despAtrTiempo
 
@@ -49,20 +49,17 @@ var estatusDerecha
 var estatusIzquierda
 var estatusAtras
 var estatusInicio
-//
-//
+
 var balas
-//
-//
+
 var jugadorGolpeado
 var regresandoDer
 var regresandoAtras
 
 var tiempoB3
 var tiempoB2
-//
 
-var velocidadJugador = 5 // Definir la velocidad constante del jugador
+var velocidadJugador = 5
 
 var juego = new Phaser.Game(w, h, Phaser.CANVAS, '', {
   preload: preload,
@@ -88,12 +85,11 @@ function create() {
   nave = juego.add.sprite(w - 100, h - 70, 'nave')
   bala = juego.add.sprite(w - 100, h, 'bala')
   jugador = juego.add.sprite(50, h, 'mono')
-  //
+
   nave2 = juego.add.sprite(20, 10, 'nave')
   bala2 = juego.add.sprite(60, 70, 'bala')
   nave3 = juego.add.sprite(w - 200, 40, 'nave')
   bala3 = juego.add.sprite(600, 100, 'bala')
-  //
 
   juego.physics.enable(jugador)
   jugador.body.collideWorldBounds = true
@@ -102,12 +98,11 @@ function create() {
 
   juego.physics.enable(bala)
   bala.body.collideWorldBounds = true
-  //
+
   juego.physics.enable(bala2)
   bala2.body.collideWorldBounds = true
   juego.physics.enable(bala3)
   bala3.body.collideWorldBounds = true
-  //
 
   pausaL = juego.add.text(w - 100, 20, 'Pausa', {
     font: '20px Arial',
@@ -117,20 +112,17 @@ function create() {
   pausaL.events.onInputUp.add(pausa, self)
   juego.input.onDown.add(mPausa, self)
 
-  //
   salto = juego.input.keyboard.addKeys({
     space: Phaser.Keyboard.SPACEBAR,
     up: Phaser.Keyboard.UP,
   })
   moverDerecha = juego.input.keyboard.addKey(Phaser.Keyboard.RIGHT)
   moverAtras = juego.input.keyboard.addKey(Phaser.Keyboard.LEFT)
-  //
 
-  // nnNetwork =  new synaptic.Architect.Perceptron(2, 6, 6, 2);
+  nnNetwork = new synaptic.Architect.Perceptron(2, 6, 6, 2)
   nnNetwork = new synaptic.Architect.Perceptron(5, 12, 6)
   nnEntrenamiento = new synaptic.Trainer(nnNetwork)
 
-  //
   estatusDerecha = 0
   estatusIzquierda = 1
   estatusInicio = 1
@@ -150,7 +142,6 @@ function create() {
 
   tiempoB3 = 0
   tiempoB2 = 0
-  //
 }
 
 function enRedNeural() {
@@ -344,7 +335,7 @@ function resetVariables() {
   bala.position.x = w - 100
   jugador.position.x = 50
   balaD = false
-  //
+
   bala2.body.velocity.y = 0
   bala2.position.y = 70
   balaD2 = false
@@ -366,7 +357,6 @@ function resetVariables() {
 
   tiempoB3 = 0
   tiempoB2 = 0
-  //
 }
 
 function saltar() {
@@ -414,12 +404,11 @@ function update() {
   }
 
   despBala = Math.floor(jugador.position.x - bala.position.x)
-  //
+
   despBala2 = Math.floor(jugador.position.y - bala2.position.y)
 
   despBala3x = Math.floor(jugador.position.x - bala3.position.x)
   despBala3y = Math.floor(jugador.position.y - bala3.position.y)
-  //
 
   if (modoAuto == false && moverDerecha.isDown && estatusDerecha == 0) {
     moverseDer()
