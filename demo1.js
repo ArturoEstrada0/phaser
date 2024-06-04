@@ -16,6 +16,9 @@ var bala3,
 
 var salto
 
+var estadoArriba, estadoAbajo, estadoIzquierda, estadoDerecha
+
+
 var moverDerecha
 var moverAtras
 
@@ -174,8 +177,12 @@ function datosDeEntrenamiento(param_entrada) {
   )
   nnSalida = nnNetwork.activate(param_entrada)
 
-
-  return nnSalida[0] >= nnSalida[1]
+  // Introducir una probabilidad de tomar decisiones aleatorias
+  if (Math.random() > 0.5) {
+    return nnSalida[0] >= nnSalida[1]
+  } else {
+    return Math.random() > 0.5 // Decisión aleatoria
+  }
 }
 
 function datosDeEntrenamiento2(param_entrada) {
@@ -193,8 +200,11 @@ function datosDeEntrenamiento2(param_entrada) {
   )
   nnSalida = nnNetwork.activate(param_entrada)
 
-
-  return nnSalida[2] >= nnSalida[3]
+  if (Math.random() > 0.5) {
+    return nnSalida[2] >= nnSalida[3]
+  } else {
+    return Math.random() > 0.5 // Decisión aleatoria
+  }
 }
 
 function datosDeEntrenamiento3(param_entrada) {
@@ -218,8 +228,13 @@ function datosDeEntrenamiento3(param_entrada) {
   var atras = Math.round(nnSalida[4] * 100)
   var ini = Math.round(nnSalida[5] * 100)
 
-  return nnSalida[4] >= nnSalida[5]
+  if (Math.random() > 0.5) {
+    return nnSalida[4] >= nnSalida[5]
+  } else {
+    return Math.random() > 0.5 // Decisión aleatoria
+  }
 }
+
 
 function pausa() {
   juego.paused = true
@@ -359,13 +374,17 @@ function update() {
   }
 
   despBala = Math.floor(jugador.position.x - bala.position.x)
-
   despBala2 = Math.floor(jugador.position.y - bala2.position.y)
-
   despBala3x = Math.floor(jugador.position.x - bala3.position.x)
   despBala3y = Math.floor(jugador.position.y - bala3.position.y)
 
-  if (modoAuto == false && moverDerecha.isDown && estatusDerecha == 0) {
+  // Captura el estado de las teclas
+  estadoArriba = salto.up.isDown ? 1 : 0
+  estadoAbajo = juego.input.keyboard.isDown(Phaser.Keyboard.DOWN) ? 1 : 0
+  estadoIzquierda = moverAtras.isDown ? 1 : 0
+  estadoDerecha = moverDerecha.isDown ? 1 : 0
+
+  if (modoAuto == false && estadoDerecha && estatusDerecha == 0) {
     moverseDer()
   }
 
@@ -387,7 +406,7 @@ function update() {
     }
   }
 
-  if (modoAuto == false && moverAtras.isDown && estatusAtras == 0) {
+  if (modoAuto == false && estadoIzquierda && estatusAtras == 0) {
     moverseAtr()
   }
 
@@ -425,7 +444,7 @@ function update() {
 
   if (
     modoAuto == false &&
-    (salto.space.isDown || salto.up.isDown) &&
+    (estadoArriba || salto.space.isDown) &&
     jugador.body.onFloor()
   ) {
     saltar()
@@ -505,10 +524,10 @@ function update() {
       output: [
         estatusAire,
         estatuSuelo,
-        estatusDerecha,
-        estatusIzquierda,
-        estatusAtras,
-        estatusInicio,
+        estadoArriba,
+        estadoAbajo,
+        estadoIzquierda,
+        estadoDerecha,
       ],
     })
 
@@ -534,6 +553,7 @@ function update() {
     )
   }
 }
+
 
 function disparo() {
   velocidadBala = -1 * velocidadRandom(velocidadBalaMin, velocidadBalaMax) // Velocidad más lenta
