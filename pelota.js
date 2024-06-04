@@ -93,7 +93,7 @@ function create() {
 }
 
 function setRandomBalaVelocity() {
-  var baseSpeed = 200
+  var baseSpeed = 600
   var angle = juego.rnd.angle()
   bala.body.velocity.set(
     Math.cos(angle) * baseSpeed,
