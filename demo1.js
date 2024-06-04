@@ -59,6 +59,14 @@ var regresandoAtras
 var tiempoB3
 var tiempoB2
 
+// Variables globales de velocidad
+var velocidadBalaMin = 100
+var velocidadBalaMax = 300
+var velocidadBala2Min = 50
+var velocidadBala2Max = 100
+var velocidadBala3Min = 10
+var velocidadBala3Max = 100
+
 var velocidadJugador = 5
 
 var juego = new Phaser.Game(w, h, Phaser.CANVAS, '', {
@@ -71,8 +79,8 @@ var juego = new Phaser.Game(w, h, Phaser.CANVAS, '', {
 function preload() {
   juego.load.image('fondo', 'assets/game/fondo.jpg')
   juego.load.spritesheet('mono', 'assets/sprites/altair.png', 32, 48)
-  juego.load.image('nave', 'assets/game/ufo.png')
-  juego.load.image('bala', 'assets/sprites/purple_ball.png')
+  juego.load.image('nave', 'assets/game/voyager.png')
+  juego.load.image('bala', 'assets/sprites/balaMario.png')
   juego.load.image('menu', 'assets/game/menu.png')
 }
 
@@ -119,7 +127,6 @@ function create() {
   moverDerecha = juego.input.keyboard.addKey(Phaser.Keyboard.RIGHT)
   moverAtras = juego.input.keyboard.addKey(Phaser.Keyboard.LEFT)
 
-  nnNetwork = new synaptic.Architect.Perceptron(2, 6, 6, 2)
   nnNetwork = new synaptic.Architect.Perceptron(5, 12, 6)
   nnEntrenamiento = new synaptic.Trainer(nnNetwork)
 
@@ -166,27 +173,8 @@ function datosDeEntrenamiento(param_entrada) {
       param_entrada[4],
   )
   nnSalida = nnNetwork.activate(param_entrada)
-  var aire = Math.round(nnSalida[0] * 100)
-  var piso = Math.round(nnSalida[1] * 100)
-  var der = Math.round(nnSalida[2] * 100)
-  var izq = Math.round(nnSalida[3] * 100)
-  var atras = Math.round(nnSalida[4] * 100)
-  var ini = Math.round(nnSalida[5] * 100)
-  console.log(
-    'Valor ',
-    'Aire %: ' +
-      aire +
-      ' Suelo %: ' +
-      piso +
-      ' Der %: ' +
-      der +
-      ' Izquierda %: ' +
-      izq +
-      ' Atras %: ' +
-      atras +
-      ' Inicio %: ' +
-      ini,
-  )
+
+
   return nnSalida[0] >= nnSalida[1]
 }
 
@@ -204,27 +192,8 @@ function datosDeEntrenamiento2(param_entrada) {
       param_entrada[4],
   )
   nnSalida = nnNetwork.activate(param_entrada)
-  var aire = Math.round(nnSalida[0] * 100)
-  var piso = Math.round(nnSalida[1] * 100)
-  var der = Math.round(nnSalida[2] * 100)
-  var izq = Math.round(nnSalida[3] * 100)
-  var atras = Math.round(nnSalida[4] * 100)
-  var ini = Math.round(nnSalida[5] * 100)
-  console.log(
-    'Valor ',
-    'Aire %: ' +
-      aire +
-      ' Suelo %: ' +
-      piso +
-      ' Der %: ' +
-      der +
-      ' Izquierda %: ' +
-      izq +
-      ' Atras %: ' +
-      atras +
-      ' Inicio %: ' +
-      ini,
-  )
+
+
   return nnSalida[2] >= nnSalida[3]
 }
 
@@ -248,21 +217,7 @@ function datosDeEntrenamiento3(param_entrada) {
   var izq = Math.round(nnSalida[3] * 100)
   var atras = Math.round(nnSalida[4] * 100)
   var ini = Math.round(nnSalida[5] * 100)
-  console.log(
-    'Valor ',
-    'Aire %: ' +
-      aire +
-      ' Suelo %: ' +
-      piso +
-      ' Der %: ' +
-      der +
-      ' Izquierda %: ' +
-      izq +
-      ' Atras %: ' +
-      atras +
-      ' Inicio %: ' +
-      ini,
-  )
+
   return nnSalida[4] >= nnSalida[5]
 }
 
@@ -524,7 +479,7 @@ function update() {
     balaD = false
   }
 
-  if (bala2.position.y >= 310 && bala2.position.x <= 70 && balaD2 == true) {
+  if (bala2.position.y >= 350 && bala2.position.x <= 70 && balaD2 == true) {
     bala2.position.x = 750
     bala2.position.y = 350
     bala2.body.velocity.y = 0
@@ -534,7 +489,7 @@ function update() {
     bala2.visible = true
   }
 
-  if (bala3.position.y >= 380 && bala3.position.x <= 70 && balaD3 == true) {
+  if (bala3.position.y >= 380 && bala3.position.x <= 0 && balaD3 == true) {
     bala3.body.velocity.y = 0
     bala3.body.velocity.x = 0
     bala3.position.x = 600
@@ -558,7 +513,7 @@ function update() {
     })
 
     console.log(
-      'B1 vx, B2 vy, B3 vx, B3 vy: ',
+      'Datos entrando, Datos saliendo: ',
       velocidadBala +
         ' ' +
         velocidadBala2 +
@@ -569,26 +524,26 @@ function update() {
     )
 
     console.log(
-      'B1 x, B2 y, B3 x, B3 y, B1 vx, B2 vy, B3 vx, B3 vy: ',
+      'Desplazamiento Bala, Desplazamiento Bala2, Desplazamiento Bala3:',
       despBala + ' ' + despBala2 + ' ' + despBala3x + ' ' + despBala3y,
     )
 
     console.log(
-      'Estatus Aire, Estatus Derecha, Estatus Atras: ',
+      'Estatus: ',
       estatusAire + ' ' + estatusDerecha + ' ' + estatusAtras + ' ',
     )
   }
 }
 
 function disparo() {
-  velocidadBala = -1 * velocidadRandom(300, 800)
+  velocidadBala = -1 * velocidadRandom(velocidadBalaMin, velocidadBalaMax) // Velocidad más lenta
   bala.body.velocity.y = 0
   bala.body.velocity.x = velocidadBala
   balaD = true
 }
 
 function disparo2() {
-  velocidadBala2 = 1 * velocidadRandom(1, 2)
+  velocidadBala2 = 1 * velocidadRandom(velocidadBala2Min, velocidadBala2Max) // Velocidad más lenta
   bala2.position.x = 60
   bala2.position.y = 70
   bala2.body.velocity.x = 0
@@ -604,8 +559,8 @@ function disparo3() {
   var dy = targetY - bala3.y
   var angle = Math.atan2(dy, dx)
   bala3.visible = true
-  velocidadBala3y = 1 * velocidadRandom(1, 2)
-  velocidadBala3x = -640
+  velocidadBala3y = 1 * velocidadRandom(velocidadBala3Min, velocidadBala3Max) // Velocidad más lenta
+  velocidadBala3x = -320 // Menor velocidad horizontal
   bala3.position.x = 600
   bala3.position.y = 100
   bala3.body.velocity.x = velocidadBala3x
