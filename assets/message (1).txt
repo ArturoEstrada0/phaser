@@ -1,0 +1,32 @@
+NIEVE
+
+import numpy as np
+import cv2 as cv
+
+# Carga la Imagen
+image = cv.imread(r'C:\Users\r2rit\IA PROYECTOS\wally3\PruebasWally\Pruebas\WallyNieve.jpg')
+
+gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+
+# Carga el xml
+wally = cv.CascadeClassifier(r'C:\Users\r2rit\IA PROYECTOS\wally3\classifier\EntrenamientoA.xml')
+
+# Parámetros para detectar a Wally
+scaleFactor = 1.3
+minNeighbors = 20
+minSize = (50, 50)
+
+wally_detections = wally.detectMultiScale(gray, scaleFactor=scaleFactor, minNeighbors=minNeighbors, minSize=minSize)
+
+for (x, y, w, h) in wally_detections:
+    # Ajuste de las coordenadas para mover el recuadro
+    x_adjusted = x - -1040  # Mover hacia la derecha
+    y_adjusted = y - -80  # Mover hacia arriba
+
+    cv.rectangle(image, (x_adjusted, y_adjusted), (x_adjusted + w, y_adjusted + h), (0, 255, 0), 2)
+    cv.putText(image, 'Wally', (x_adjusted, y_adjusted - 10), cv.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+
+# Muestra el resultado
+cv.imshow('Donde esta Wally?', image)
+cv.waitKey(0)
+cv.destroyAllWindows()

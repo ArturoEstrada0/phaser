@@ -18,7 +18,6 @@ var salto
 
 var estadoArriba, estadoAbajo, estadoIzquierda, estadoDerecha
 
-
 var moverDerecha
 var moverAtras
 
@@ -62,6 +61,8 @@ var regresandoAtras
 var tiempoB3
 var tiempoB2
 
+var ticks = 0 // Variable para contar el número de ciclos
+
 // Variables globales de velocidad
 var velocidadBalaMin = 100
 var velocidadBalaMax = 300
@@ -90,7 +91,7 @@ function preload() {
 function create() {
   juego.physics.startSystem(Phaser.Physics.ARCADE)
   juego.physics.arcade.gravity.y = 800
-  juego.time.desiredFps = 30
+  juego.time.desiredFps = 60
 
   fondo = juego.add.tileSprite(0, 0, w, h, 'fondo')
   nave = juego.add.sprite(w - 100, h - 70, 'nave')
@@ -130,7 +131,7 @@ function create() {
   moverDerecha = juego.input.keyboard.addKey(Phaser.Keyboard.RIGHT)
   moverAtras = juego.input.keyboard.addKey(Phaser.Keyboard.LEFT)
 
-  nnNetwork = new synaptic.Architect.Perceptron(5, 12, 6)
+  nnNetwork = new synaptic.Architect.Perceptron(9, 18, 3) // Incrementar el número de entradas
   nnEntrenamiento = new synaptic.Trainer(nnNetwork)
 
   estatusDerecha = 0
@@ -155,86 +156,19 @@ function create() {
 }
 
 function enRedNeural() {
-  nnEntrenamiento.train(datosEntrenamiento, {
-    rate: 0.0003,
-    iterations: 10000,
-    shuffle: true,
-  })
+  if (datosEntrenamiento.length > 0) {
+    nnEntrenamiento.train(datosEntrenamiento, {
+      rate: 0.0001,
+      iterations: 20000,
+      shuffle: true,
+    })
+  }
 }
 
 function datosDeEntrenamiento(param_entrada) {
-  console.log(
-    'Entrada',
-    param_entrada[0] +
-      ' ' +
-      param_entrada[1] +
-      ' ' +
-      param_entrada[2] +
-      ' ' +
-      param_entrada[3] +
-      ' ' +
-      param_entrada[4],
-  )
   nnSalida = nnNetwork.activate(param_entrada)
-
-  // Introducir una probabilidad de tomar decisiones aleatorias
-  if (Math.random() > 0.5) {
-    return nnSalida[0] >= nnSalida[1]
-  } else {
-    return Math.random() > 0.5 // Decisión aleatoria
-  }
+  return nnSalida
 }
-
-function datosDeEntrenamiento2(param_entrada) {
-  console.log(
-    'Entrada',
-    param_entrada[0] +
-      ' ' +
-      param_entrada[1] +
-      ' ' +
-      param_entrada[2] +
-      ' ' +
-      param_entrada[3] +
-      ' ' +
-      param_entrada[4],
-  )
-  nnSalida = nnNetwork.activate(param_entrada)
-
-  if (Math.random() > 0.5) {
-    return nnSalida[2] >= nnSalida[3]
-  } else {
-    return Math.random() > 0.5 // Decisión aleatoria
-  }
-}
-
-function datosDeEntrenamiento3(param_entrada) {
-  console.log(
-    'Entrada',
-    param_entrada[0] +
-      ' ' +
-      param_entrada[1] +
-      ' ' +
-      param_entrada[2] +
-      ' ' +
-      param_entrada[3] +
-      ' ' +
-      param_entrada[4],
-  )
-  nnSalida = nnNetwork.activate(param_entrada)
-  var aire = Math.round(nnSalida[0] * 100)
-  var piso = Math.round(nnSalida[1] * 100)
-  var der = Math.round(nnSalida[2] * 100)
-  var izq = Math.round(nnSalida[3] * 100)
-  var atras = Math.round(nnSalida[4] * 100)
-  var ini = Math.round(nnSalida[5] * 100)
-
-  if (Math.random() > 0.5) {
-    return nnSalida[4] >= nnSalida[5]
-  } else {
-    return Math.random() > 0.5 // Decisión aleatoria
-  }
-}
-
 
 function pausa() {
   juego.paused = true
@@ -276,7 +210,7 @@ function mPausa(event) {
         if (!eCompleto) {
           console.log(
             '',
-            'Entrenamiento ' + datosEntrenamiento.length + ' valores',
+            'movimientos ' + datosEntrenamiento.length + ' valores',
           )
           enRedNeural()
           eCompleto = true
@@ -410,35 +344,34 @@ function update() {
     moverseAtr()
   }
 
-  if (modoAuto == true && bala2.position.y > 250 && estatusDerecha == 0) {
-    if (
-      datosDeEntrenamiento2([
-        despBala,
-        velocidadBala,
-        despBala2,
-        despBala3x,
-        despBala3y,
-      ])
-    ) {
-      moverseDer()
-    }
-  }
+  if (modoAuto == true) {
+    // Resetear el estado de movimiento
+    estatusDerecha = 0
+    estatusIzquierda = 0
+    estatusAtras = 0
 
-  if (
-    modoAuto == true &&
-    (bala3.position.y > 200 || bala3.position.x < 400) &&
-    estatusAtras == 0
-  ) {
-    if (
-      datosDeEntrenamiento3([
+    if (datosEntrenamiento.length > 0) {
+      let output = datosDeEntrenamiento([
         despBala,
         velocidadBala,
         despBala2,
         despBala3x,
         despBala3y,
+        jugador.position.x, // Posición X del jugador
+        jugador.position.y, // Posición Y del jugador
+        estatuSuelo, // Estado del jugador en el suelo
+        estatusAire, // Estado del jugador en el aire
       ])
-    ) {
-      moverseAtr()
+
+      if (output[1] > 0.5) {
+        moverseDer()
+      } else if (output[2] > 0.5) {
+        moverseAtr()
+      }
+
+      if (output[0] > 0.5 && jugador.body.onFloor()) {
+        saltar()
+      }
     }
   }
 
@@ -448,20 +381,6 @@ function update() {
     jugador.body.onFloor()
   ) {
     saltar()
-  }
-
-  if (modoAuto == true && bala.position.x > 0 && jugador.body.onFloor()) {
-    if (
-      datosDeEntrenamiento([
-        despBala,
-        velocidadBala,
-        despBala2,
-        despBala3x,
-        despBala3y,
-      ])
-    ) {
-      saltar()
-    }
   }
 
   if (balaD == false) {
@@ -519,41 +438,43 @@ function update() {
   }
 
   if (modoAuto == false && bala.position.x > 0) {
-    datosEntrenamiento.push({
-      input: [despBala, velocidadBala, despBala2, despBala3x, despBala3y],
-      output: [
-        estatusAire,
+    // Registrar datos en intervalos más frecuentes
+    if (ticks % 5 === 0 && (estadoDerecha || estadoIzquierda || estadoArriba)) {
+      // Cada 5 ciclos
+      datosEntrenamiento.push({
+        input: [
+          despBala,
+          velocidadBala,
+          despBala2,
+          despBala3x,
+          despBala3y,
+          jugador.position.x, // Posición X del jugador
+          jugador.position.y, // Posición Y del jugador
+          estatuSuelo, // Estado del jugador en el suelo
+          estatusAire, // Estado del jugador en el aire
+        ],
+        output: [
+          estadoArriba, // Salto
+          estadoDerecha, // Movimiento derecha
+          estadoIzquierda, // Movimiento izquierda
+        ],
+      })
+      console.log(
+        'Datos de entrenamiento: ',
+        despBala,
+        velocidadBala,
+        despBala2,
+        despBala3x,
+        despBala3y,
+        jugador.position.x,
+        jugador.position.y,
         estatuSuelo,
-        estadoArriba,
-        estadoAbajo,
-        estadoIzquierda,
-        estadoDerecha,
-      ],
-    })
-
-    console.log(
-      'Datos entrando, Datos saliendo: ',
-      velocidadBala +
-        ' ' +
-        velocidadBala2 +
-        ' ' +
-        velocidadBala3x +
-        ' ' +
-        velocidadBala3y,
-    )
-
-    console.log(
-      'Desplazamiento Bala, Desplazamiento Bala2, Desplazamiento Bala3:',
-      despBala + ' ' + despBala2 + ' ' + despBala3x + ' ' + despBala3y,
-    )
-
-    console.log(
-      'Estatus: ',
-      estatusAire + ' ' + estatusDerecha + ' ' + estatusAtras + ' ',
-    )
+        estatusAire,
+      )
+    }
+    ticks++
   }
 }
-
 
 function disparo() {
   velocidadBala = -1 * velocidadRandom(velocidadBalaMin, velocidadBalaMax) // Velocidad más lenta
